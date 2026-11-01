@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" class="page-login">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login Page</title>
+  <link rel="stylesheet" href="/wfm/styles/style.css?v=20231109" id="wfm-login-css" />
+  <link rel="stylesheet" href="/assets/styles/bootstrap/css/bootstrap.css" id="bs-css" disabled />
+  <link rel="stylesheet" href="/assets/styles/appFontsCommon.css" id="app-fonts-css" disabled />
+  <link rel="stylesheet" href="/assets/styles/appStylesCommon.css" id="app-styles-css" disabled />
+  <link rel="stylesheet" href="/console/css/console.css" />
+</head>
+<body>
+  <div id="view-login">
+    <div id="header">
+      <div id="logo">
+        <h1>
+          <a id="anchorfocus" href="/console/"><img src="/wfm/images/wwpdb_logo.gif" border="0" alt="wwPDB" width="187" height="58" /></a><span>console</span>
+        </h1><br/>
+      </div><br/>
+      <div id="subheader">
+        <table>
+          <tr><td colspan="2" bgcolor="#006633">&nbsp;</td></tr>
+          <tr>
+            <td class="breadCrumbs"></td>
+            <td class="logged"></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div id="pageTitle">Console: Login Page</div>
+    <div id="content">
+      <form id="login-form" method="post" action="#">
+        <table width="250" align="center">
+          <tr>
+            <th class="wfmTh"><label for="id_username">Username:</label></th>
+            <td><input id="id_username" type="text" name="username" maxlength="200" autocomplete="username" required /></td>
+          </tr>
+          <tr>
+            <th class="wfmTh"><label for="id_psw">Password :</label></th>
+            <td><input id="id_psw" type="password" name="password" maxlength="50" autocomplete="current-password" required /></td>
+          </tr>
+          <tr>
+            <td class="actionTd" colspan="2" align="center"><input type="submit" value="Submit" /></td>
+          </tr>
+        </table>
+      </form>
+      <p class="errorText" id="login-error"></p>
+      <center><a href="/wfm/forgotPass.html">Forgot your password?</a></center>
+    </div>
+  </div>
+
+  <div id="app-shell" class="hidden">
+    <div id="wrap">
+      <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <a class="my-navbar-brand" href="#/" id="brand-link">Console</a>
+          </div>
+          <div class="navbar-collapse">
+            <ul id="top-menu-options" class="nav navbar-nav"></ul>
+            <ul class="nav navbar-nav navbar-right" id="header-user">
+              <li><p class="navbar-text" id="header-name"></p></li>
+              <li><a href="#/" id="logout-btn">Log out</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="page-header">
+          <h3>Console <small id="page-subheading">All actions</small>
+            <small id="span_identifier" class="pull-right"></small>
+          </h3>
+        </div>
+        <div id="view-hub"></div>
+        <div id="view-action" class="hidden"></div>
+        <div id="view-job" class="hidden"></div>
+      </div>
+    </div>
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; wwPDB</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/console/js/console.js"></script>
+</body>
+</html>

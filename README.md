@@ -1,2 +1,2 @@
 # onedep-webfe_console
-OneDep Batch Console
+Front end for the OneDep annotator batch console

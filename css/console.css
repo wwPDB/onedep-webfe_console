@@ -1,0 +1,48 @@
+/* Login uses /wfm/styles/style.css. After login, Bootstrap + appStylesCommon match AnnMod. */
+
+.hidden { display: none !important; }
+
+html.page-app .list-group-item {
+  cursor: pointer;
+}
+html.page-app .list-group-item .action-card__desc {
+  display: block;
+  margin-top: 0.25rem;
+  color: #777;
+  font-size: 13px;
+}
+html.page-app .list-group-item.disabled,
+html.page-app .list-group-item.disabled:hover,
+html.page-app .list-group-item.disabled .action-card__desc {
+  cursor: not-allowed;
+  color: #999;
+  background: #f3f3f3;
+  pointer-events: none;
+}
+html.page-app .navbar-inverse .nav > li.disabled > a,
+html.page-app .navbar-inverse .nav > li.disabled > a:hover {
+  color: #777;
+  cursor: default;
+}
+html.page-app textarea.form-control {
+  min-height: 10rem;
+  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-size: 13px;
+}
+html.page-app .radio label {
+  font-weight: normal;
+}
+html.page-app pre.console-log {
+  max-height: 22rem;
+  overflow: auto;
+  font-size: 12px;
+  background: #f5f5f5;
+}
+html.page-app .navbar-right .navbar-text {
+  margin-right: 0;
+}
+html.page-app a.my-navbar-brand:hover,
+html.page-app a.my-navbar-brand:focus {
+  color: #c5e0c6;
+  text-decoration: none;
+}
