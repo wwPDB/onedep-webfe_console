@@ -1,5 +1,5 @@
 (function () {
-  var API = "/service/workmanager";
+  var API = "/service/console";
   var STORAGE = "onedep-console-session";
 
   var MESSAGE_TEMPLATES = [
