@@ -461,7 +461,7 @@
     var idHelp = "One per line, or comma / space separated.";
     if (act.id === "make_related_entries") {
       idPlaceholder = "D_1000000001\nD_1000000002";
-      idHelp = "At least two and at most 30. Deposition IDs or PDB, EMDB, BMRB, or SAS codes. One per line, or comma / space separated. The first submit is a dry run.";
+      idHelp = "At least two and at most 30. Deposition IDs, classic or extended PDB IDs (1abc, pdb_00001abc), or EMDB, BMRB, or SAS codes. One per line, or comma / space separated. The first submit is a dry run.";
     }
     html += '<div class="form-group">';
     html += '<label class="control-label" for="deposition_ids">Deposition IDs</label>';
