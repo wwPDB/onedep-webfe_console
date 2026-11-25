@@ -32,6 +32,12 @@ html.page-app textarea.form-control {
 html.page-app .radio label {
   font-weight: normal;
 }
+html.page-app .batched-section {
+  margin-top: 1.25rem;
+}
+html.page-app .batched-section:first-of-type {
+  margin-top: 0;
+}
 html.page-app pre.console-log {
   max-height: 22rem;
   overflow: auto;

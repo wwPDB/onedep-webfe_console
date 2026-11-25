@@ -143,8 +143,42 @@
           implemented: true
         }
       ]
+    },
+    {
+      slug: "batched-operations",
+      title: "Batched operations",
+      navTitle: "Batched operations",
+      blurb: "Archive edits. A set-level procedure can use the whole list. A per-entry procedure runs on each deposition on its own.",
+      sections: [
+        {
+          title: "One procedure over the set",
+          blurb: "Each entry's edit can depend on the others in the list.",
+          actions: [
+            {
+              id: "make_related_entries",
+              title: "Make related entries",
+              description: "Cross-links the whole set in pdbx_database_related. Dry run first. Write adds a new model version for entries that change.",
+              implemented: true
+            }
+          ]
+        },
+        {
+          title: "Per-entry procedure",
+          blurb: "The same edit runs separately on each deposition.",
+          actions: [
+            {
+              id: "per_entry_placeholder",
+              title: "No per-entry operations yet",
+              description: "Archive edits that run separately on each deposition will be listed here.",
+              implemented: false
+            }
+          ]
+        }
+      ]
     }
   ];
+
+  var EM_CONTENT_TYPES = ["other EM volume", "consensus EM volume", "focused EM volume"];
 
   var session = null;
   var navContext = "home";
@@ -242,8 +276,21 @@
       .replace(/"/g, "&quot;");
   }
 
+  function groupActions(group) {
+    if (group.sections) {
+      var all = [];
+      group.sections.forEach(function (section) {
+        (section.actions || []).forEach(function (act) {
+          all.push(act);
+        });
+      });
+      return all;
+    }
+    return group.actions || [];
+  }
+
   function groupLive(group) {
-    return group.actions.some(function (act) {
+    return groupActions(group).some(function (act) {
       return act.implemented;
     });
   }
@@ -257,9 +304,10 @@
 
   function findAction(actionId) {
     for (var i = 0; i < GROUPS.length; i++) {
-      for (var j = 0; j < GROUPS[i].actions.length; j++) {
-        if (GROUPS[i].actions[j].id === actionId) {
-          return { group: GROUPS[i], action: GROUPS[i].actions[j] };
+      var actions = groupActions(GROUPS[i]);
+      for (var j = 0; j < actions.length; j++) {
+        if (actions[j].id === actionId) {
+          return { group: GROUPS[i], action: actions[j] };
         }
       }
     }
@@ -313,9 +361,9 @@
     });
   }
 
-  function actionListHtml(group) {
+  function actionCardsHtml(actions) {
     var html = '<div class="list-group">';
-    group.actions.forEach(function (act) {
+    actions.forEach(function (act) {
       if (act.implemented) {
         html +=
           '<a href="#/" class="list-group-item" data-action="' +
@@ -335,6 +383,17 @@
       }
     });
     html += "</div>";
+    return html;
+  }
+
+  function actionListHtml(group) {
+    if (!group.sections) return actionCardsHtml(group.actions || []);
+    var html = "";
+    group.sections.forEach(function (section) {
+      html += '<h4 class="batched-section">' + escapeHtml(section.title) + "</h4>";
+      if (section.blurb) html += '<p class="text-muted">' + escapeHtml(section.blurb) + "</p>";
+      html += actionCardsHtml(section.actions || []);
+    });
     return html;
   }
 
@@ -398,12 +457,34 @@
     html += '<p class="text-muted">' + escapeHtml(act.description) + "</p>";
     html += '<div class="alert alert-danger hidden" id="action-error"></div>';
     html += '<input type="hidden" name="action_id" value="' + escapeHtml(act.id) + '" />';
+    var idPlaceholder = "D_1292156088";
+    var idHelp = "One per line, or comma / space separated.";
+    if (act.id === "make_related_entries") {
+      idPlaceholder = "D_1000000001\nD_1000000002";
+      idHelp = "At least two and at most 30. Deposition IDs or PDB, EMDB, BMRB, or SAS codes. One per line, or comma / space separated. The first submit is a dry run.";
+    }
     html += '<div class="form-group">';
     html += '<label class="control-label" for="deposition_ids">Deposition IDs</label>';
     html +=
-      '<textarea id="deposition_ids" name="deposition_ids" class="form-control" required placeholder="D_1292156088"></textarea>';
-    html += '<p class="help-block">One per line, or comma / space separated.</p>';
+      '<textarea id="deposition_ids" name="deposition_ids" class="form-control" required placeholder="' +
+      escapeHtml(idPlaceholder) +
+      '"></textarea>';
+    html += '<p class="help-block">' + escapeHtml(idHelp) + "</p>";
     html += "</div>";
+    if (act.id === "make_related_entries") {
+      html += "<p><strong>EM content type</strong></p>";
+      html += '<p class="help-block">Used when a related entry is cited by EMDB id only. Model-bearing entries are still cited as PDB / unspecified.</p>';
+      EM_CONTENT_TYPES.forEach(function (label, idx) {
+        html +=
+          '<div class="radio"><label><input type="radio" name="em_content_type" value="' +
+          escapeHtml(label) +
+          '"' +
+          (idx === 0 ? " checked" : "") +
+          " /> " +
+          escapeHtml(label) +
+          "</label></div>";
+      });
+    }
     if (act.id === "run_or_restart_level2_module") {
       html += "<p><strong>Module</strong></p>";
       LEVEL2_MODULES.forEach(function (mod, idx) {
@@ -463,7 +544,8 @@
         '<div class="radio"><label><input type="radio" name="notes_flag" value="enable" checked /> Enable</label></div>';
       html += '<div class="radio"><label><input type="radio" name="notes_flag" value="disable" /> Disable</label></div>';
     }
-    html += '<input class="btn btn-primary" type="submit" value="Start run" />';
+    var submitLabel = act.id === "make_related_entries" ? "Dry run" : "Start run";
+    html += '<input class="btn btn-primary" type="submit" value="' + submitLabel + '" />';
     html += "</fieldset></form>";
     views.action.innerHTML = html;
     $("back-hub").addEventListener("click", function (ev) {
@@ -520,6 +602,11 @@
         var flag = form.querySelector('input[name="notes_flag"]:checked');
         fields.notes_flag = flag ? flag.value : "";
       }
+      if (act.id === "make_related_entries") {
+        var emType = form.querySelector('input[name="em_content_type"]:checked');
+        fields.em_content_type = emType ? emType.value : "";
+        fields.dry_run = "yes";
+      }
       var btn = form.querySelector('[type=submit]');
       btn.disabled = true;
       post("/console_start", fields)
@@ -573,6 +660,41 @@
     if (extra.send_letter_label) {
       html += "<p><strong>AUTH</strong> " + escapeHtml(extra.send_letter_label) + "</p>";
     }
+    if (extra.mode_label) {
+      html += "<p><strong>Mode</strong> " + escapeHtml(extra.mode_label);
+      if (extra.em_content_type) html += " · EM content type " + escapeHtml(extra.em_content_type);
+      html += "</p>";
+    }
+    if (extra.citations && extra.citations.length) {
+      html += "<p><strong>Each entry will be cited as</strong></p><ul>";
+      extra.citations.forEach(function (cite) {
+        html +=
+          "<li><code>" +
+          escapeHtml(cite.deposition_id) +
+          "</code> " +
+          escapeHtml(cite.db_name || "") +
+          " " +
+          escapeHtml(cite.db_id || "") +
+          " (" +
+          escapeHtml(cite.content_type || "") +
+          ")</li>";
+      });
+      html += "</ul>";
+    }
+    if (job.action_id === "make_related_entries") {
+      var would = 0;
+      var wrote = 0;
+      var same = 0;
+      rows.forEach(function (row) {
+        if (row.outcome === "would_update") would += 1;
+        else if (row.outcome === "updated") wrote += 1;
+        else if (row.outcome === "unchanged") same += 1;
+      });
+      html += "<p><strong>Entries</strong> ";
+      if (extra.dry_run) html += would + " would change · " + same + " unchanged";
+      else html += wrote + " written · " + same + " unchanged";
+      html += "</p>";
+    }
     html +=
       "<p><strong>Run summary</strong> " +
       badge("ok") +
@@ -589,27 +711,82 @@
       "</p>";
     if (job.error) html += '<div class="alert alert-danger">' + escapeHtml(job.error) + "</div>";
     html += "</fieldset>";
+    var detailHeader = job.action_id === "make_related_entries" ? "Detail" : "Error";
     html += "<h4>Per-deposition result</h4>";
     html +=
-      '<table class="table table-bordered table-condensed table-striped"><thead><tr><th>Deposition ID</th><th>Result</th><th>Error</th></tr></thead><tbody>';
+      '<table class="table table-bordered table-condensed table-striped"><thead><tr><th>Deposition ID</th><th>Result</th><th>' +
+      detailHeader +
+      "</th></tr></thead><tbody>";
     rows.forEach(function (row) {
+      var detail = row.detail || row.error || "";
       html +=
         "<tr><td><code>" +
         escapeHtml(row.deposition_id) +
         "</code></td><td>" +
         badge(row.status) +
         "</td><td>" +
-        escapeHtml(row.error || "") +
+        escapeHtml(detail) +
         "</td></tr>";
     });
     html += "</tbody></table>";
+    if (relatedWriteAllowed(job)) {
+      html += '<div class="alert alert-danger hidden" id="related-write-error"></div>';
+      html +=
+        '<p><button type="button" class="btn btn-primary" id="related-write">Write</button> ';
+      html += '<span class="help-block">Writes a new model version for entries that would change. Reload and ValMod stay on their own actions.</span></p>';
+    } else if (
+      job.action_id === "make_related_entries" &&
+      extra.dry_run &&
+      job.status === "done" &&
+      !job.error &&
+      !(job.failed || 0)
+    ) {
+      html += '<p class="text-muted">No new related rows. Nothing to write.</p>';
+    }
     html += "<h4>Log</h4><pre class=\"console-log\">" + escapeHtml((job.log || []).join("\n")) + "</pre>";
     views.job.innerHTML = html;
     $("back-hub-job").addEventListener("click", function (ev) {
       ev.preventDefault();
       goBack();
     });
+    var writeBtn = $("related-write");
+    if (writeBtn) {
+      writeBtn.addEventListener("click", function () {
+        var count = (job.deposition_ids || []).length;
+        var message =
+          "Write related-entry rows into the archive for " +
+          count +
+          " depositions? Each entry that changes gets a new model version.";
+        if (!window.confirm(message)) return;
+        writeBtn.disabled = true;
+        post("/console_start", {
+          action_id: "make_related_entries",
+          deposition_ids: (job.deposition_ids || []).join("\n"),
+          em_content_type: (job.extra || {}).em_content_type || "",
+          dry_run: "no"
+        })
+          .then(renderJob)
+          .catch(function (err) {
+            writeBtn.disabled = false;
+            var box = $("related-write-error");
+            if (box) {
+              box.textContent = err.message;
+              box.classList.remove("hidden");
+            }
+          });
+      });
+    }
     showView("job");
+  }
+
+  function relatedWriteAllowed(job) {
+    var extra = job.extra || {};
+    if (job.action_id !== "make_related_entries" || !extra.dry_run) return false;
+    if (job.status !== "done" || job.error) return false;
+    if ((job.failed || 0) > 0) return false;
+    return (job.rows || []).some(function (row) {
+      return row.outcome === "would_update";
+    });
   }
 
   function goLogin(message) {
